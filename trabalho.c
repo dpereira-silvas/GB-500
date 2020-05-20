@@ -45,50 +45,23 @@ void D( mpz_t m, mpz_t c, mpz_t lambda, mpz_t micro, mpz_t n ) {
     
 }
 
-
-
-void print(mpz_t *v, int n, int op)
+void print(mpz_t *v, int n)
 {
-    if(op)
+    for(int i = 0; i < (n-1); i++)
     {
-        for(int i = 0; i < (n-1); i++)
-        {
-            printf("%f\t",(1/5000000.0)*mpz_get_ui(v[i] ));
-        }
-        printf("%f\n",(1/5000000.0)*mpz_get_ui(v[(n-1)]));
+        printf("%f ",(1/1000000.0)*mpz_get_ui(v[i] ));
     }
-    else
-    {
-            for(int i = 0; i < (n-1); i++)
-            {
-                printf("%f\t",(1/1000000.0)*mpz_get_ui(v[i] ));
-            }
-            printf("%f\n",(1/1000000.0)*mpz_get_ui(v[(n-1)]));
-
-    }
-
+    printf("%f\n",(1/1000000.0)*mpz_get_ui(v[(n-1)]));
 }
 
-void write_vector(mpz_t *v, int n, FILE *f, int op)
+void write_vector(mpz_t *v, int n, FILE *f)
 {
-    if(op)
+
+    for(int i = 0; i < (n-1); i++)
     {
-        for(int i = 0; i < (n-1); i++)
-        {
-            fprintf (f, "%f\t",(1/5000000.0)*mpz_get_ui(v[i] ));
-        }
-        fprintf(f,"%f\n",(1/5000000.0)*mpz_get_ui(v[(n-1)]));
+        fprintf (f, "%f\t",(1/1000000.0)*mpz_get_ui(v[i] ));
     }
-    else
-    {
-        for(int i = 0; i < (n-1); i++)
-        {
-            fprintf (f, "%f\t",(1/1000000.0)*mpz_get_ui(v[i] ));
-        }
-        fprintf(f,"%f\n",(1/1000000.0)*mpz_get_ui(v[(n-1)]));
-    }
-    
-    
+    fprintf(f,"%f\n",(1/1000000.0)*mpz_get_ui(v[(n-1)]));  
 }
 
 
@@ -98,7 +71,7 @@ void clear_vector(mpz_t *v, int n)
     {
         mpz_clear(v[i]);
     }
-        free(v);
+    free(v);
 
 }
 
@@ -106,10 +79,8 @@ void copy_vector(mpz_t *u, mpz_t *v, int n)
 {
     for(int i = 0; i < n; i++)
     {
-        // u[i] = v[i];
         mpz_set(u[i], v[i]);
     }
-
 }
 
 
@@ -161,125 +132,145 @@ int main() {
     // publica : (n,g)
     // privada : (lambda, micro)
     
-    FILE *arq;
 
+    FILE *arq;
     arq = fopen("out.txt","w");
     
     int dx = 5;
     int dt = 5;
+    // Exemplo 1
+    // int n_nodes = 11;
+
+    // Exemplo 2
+    int n_nodes = 7;
+
     int t_final = 500;
-    float l = 0.2;
+
+    // numero de Fourier 1/mul
+    int mul = 5;
 
     mpz_t *Uant;
-    Uant = malloc(sizeof(mpz_t) * 11);
-    mpz_init_set_str(Uant[0],"0",10);
-    mpz_init_set_str(Uant[10],"0",10);
-    // setando a condição inicial
-    for(int i = 1; i < 10; i++)
-    {
-        mpz_init_set_str(Uant[i],"20000000",10); // 20.000000
+    Uant = malloc(sizeof(mpz_t) * n_nodes);
+
+    // Condições de contorno
+    // Exemplo 1
+    // mpz_init_set_str(Uant[0],"0",10);
+    // mpz_init_set_str(Uant[n_nodes-1],"0",10);
+
+    // Exemplo 2
+    mpz_init_set_str(Uant[0],"20000000",10);
+    mpz_init_set_str(Uant[n_nodes-1],"50000000",10);
+
+    // Condição inicial
+    for(int i = 1; i < (n_nodes-1); i++)
+    {   
+        //Exemplo 1
+        // mpz_init_set_str(Uant[i],"20000000",10); // 20.000000
+
+        // Exemplo 2
+        mpz_init_set_ui(Uant[i],(60-2*(i*dx))*1000000  ); // 60 -2*x
     }
-    print(Uant,11,0);
-    write_vector(Uant, 11, arq,0);
+    // print(Uant,n_nodes);
+    write_vector(Uant, n_nodes-1, arq);
 
 
     mpz_t *U;
-    U = malloc(sizeof(mpz_t) * 11);
-    // mpz_init_set_str(U[0],"0",10);
-    // mpz_init_set_str(U[10],"0",10);
+    U = malloc(sizeof(mpz_t) * n_nodes);
 
     // inicializando vetor
-    for(int i = 0; i < 11; i++)
+    for(int i = 0; i < n_nodes; i++)
     {
         mpz_init(U[i]); 
     }
-
-    // print(Uant,11);
-    // write_vector(Uant, 11, arq);
-
-    int j = dt;
     
+
+
     mpz_t *C;
-    C = malloc(sizeof(mpz_t) * 11);
+    C = malloc(sizeof(mpz_t) * n_nodes);
     // inicializando vetor
-    for(int i = 0; i < 11; i++)
+    for(int i = 0; i < n_nodes; i++)
     {
         mpz_init(C[i]); 
     }
 
     mpz_t *U_dec;
-    U_dec = malloc(sizeof(mpz_t) * 11);
-    for(int i = 0; i < 11; i++)
+    U_dec = malloc(sizeof(mpz_t) * n_nodes);
+    for(int i = 0; i < n_nodes; i++)
     {
         mpz_init(U_dec[i]); 
     }
 
+
+
     // Cifrando a condição inicial
-    for(int i = 0; i < 11; i++)
+    for(int i = 0; i < n_nodes; i++)
     {
         E( C[i], Uant[i], g, n );
     }
+    clear_vector(Uant,n_nodes);
 
-    mpz_t tmp1;
-    mpz_init(tmp1);
-    mpz_t tmp2;
-    mpz_init(tmp2);
+    // passando para o vetor U as condições de contorno criptografadas
+    mpz_set(U[0],C[0]);
+    mpz_set(U[n_nodes-1],C[n_nodes-1]);
 
+    mpz_t tmp;
+    mpz_init(tmp);
+
+    int j = dt; // Iteração começa do instante de tempo 0+dt
 
     while(j <= t_final)
     {
         /////   SERVIDOR
-        for(int i = 1; i < 10; i++)
+        for(int i = 1; i < (n_nodes-1); i++)
         {
-            mpz_powm_ui( tmp1, C[i], 2, n2 );  // 
-            mpz_invert(tmp1, tmp1, n2);
+            mpz_powm_ui( tmp, C[i], 2, n2 );      // 
+            mpz_invert(tmp, tmp, n2);            //  -2*Uant[i]
 
-            mpz_powm_ui( tmp2, C[i], 5, n2 );
+            mpz_powm_ui( U[i], C[i], mul, n2 );  // 5*Uant[i]
 
-            mpz_set(U[i],C[i+1]);
-            mpz_mul( U[i], U[i], C[i-1] );
+            mpz_mul( U[i], U[i], C[i+1] );       //  U[i] = U[i] + Uant[i+1]
             mpz_mod( U[i], U[i], n2 );
 
-            mpz_mul( U[i], U[i], tmp1 );
+            mpz_mul( U[i], U[i], C[i-1] );       //  U[i] = U[i] + Uant[i-1]
             mpz_mod( U[i], U[i], n2 );
 
-            mpz_mul( U[i], U[i], tmp2 );
+            mpz_mul( U[i], U[i], tmp );          //  U[i] = U[i] -  2*Uant[i]
             mpz_mod( U[i], U[i], n2 );
-
         }
 
 
         /////   CLIENTE
-        // decifra o U
-        for(int i = 1; i < 10; i++)
+        // Decifra o U
+        for(int i = 0; i < n_nodes; i++)
         {
             D( U_dec[i], U[i], lambda, micro, n );
-            mpz_div_ui(U_dec[i],U_dec[i],5); 
+            if((i != 0) && (i != (n_nodes-1)) )
+                mpz_div_ui(U_dec[i],U_dec[i],mul); 
         }
 
-        print(U_dec,11,0);
-        write_vector(U_dec, 11, arq,0);
+        // print(U_dec,n_nodes);
+        write_vector(U_dec, n_nodes, arq);
 
-        // Divide todo o U por 5
-        // for(int i = 1; i < 10; i++)
-        // {
-        //     mpz_div_ui(U_dec[i],U_dec[i],5); 
-        // }
-
-        // cifra novamente e manda para o servidor
-        for(int i = 0; i < 11; i++)
+        // Cifra novamente e manda para o servidor
+        for(int i = 0; i < n_nodes; i++)
         {
             E( C[i], U_dec[i], g, n );
         }
-        
-
         j = j + dt;
     }
 
-    clear_vector(Uant,11);
-    clear_vector(U,11);
-    clear_vector(C,11);
-    clear_vector(U_dec,11);
+    mpz_clear(p);
+    mpz_clear(q);
+    mpz_clear(n);
+    mpz_clear(n2);
+    mpz_clear(g);
+    mpz_clear(lambda);
+    mpz_clear(micro);
+
+    mpz_clear(tmp);
+    clear_vector(U,n_nodes);
+    clear_vector(C,n_nodes);
+    clear_vector(U_dec,n_nodes);
     fclose(arq);
 
     return 0;
